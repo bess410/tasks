@@ -34,7 +34,16 @@ class MyService implements Runnable {
             e.printStackTrace();
         }
         System.out.println(name + " закончил выполнение");
+        checkToStop();
         checkParentsToRun();
+    }
+
+    public void runService() {
+        if (isReadyToRun()) {
+            MyExecutor.getExecutor().execute(this);
+        } else {
+            children.forEach(MyService::runService);
+        }
     }
 
     private void checkParentsToRun() {
@@ -44,15 +53,13 @@ class MyService implements Runnable {
                 .forEach(MyService::runService);
     }
 
-    private boolean isReadyToRun() {
-        return children.isEmpty();
+    private void checkToStop() {
+        if (parents.isEmpty()) {
+            MyExecutor.getExecutor().shutdown();
+        }
     }
 
-    public void runService() {
-        if (isReadyToRun()) {
-            MyExecutor.getExecutor().execute(this);
-        } else {
-            children.forEach(MyService::runService);
-        }
+    private boolean isReadyToRun() {
+        return children.isEmpty();
     }
 }

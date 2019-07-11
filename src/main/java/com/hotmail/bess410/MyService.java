@@ -7,6 +7,7 @@ import java.util.Set;
 class MyService implements Runnable {
     private String name;
     private int timeExecution;
+    private volatile boolean running = false;
 
     private Set<MyService> parents = new HashSet<>();
     private Set<MyService> children = new HashSet<>();
@@ -38,9 +39,14 @@ class MyService implements Runnable {
         checkParentsToRun();
     }
 
-    public void runService() {
+    public synchronized void runService() {
+        if (running) {
+            return;
+        }
+
         if (isReadyToRun()) {
             MyExecutor.getExecutor().execute(this);
+            running = true;
         } else {
             children.forEach(MyService::runService);
         }
